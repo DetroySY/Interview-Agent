@@ -1,9 +1,9 @@
-# Environment variables (API keys)
+# ===== Environment variables (API keys) =====
 .env
 .env.local
 .env.*.local
 
-# Python
+# ===== Python =====
 __pycache__/
 *.py[cod]
 *$py.class
@@ -11,31 +11,49 @@ __pycache__/
 .Python
 venv/
 ENV/
+env/
 
-# Database
+# ===== Database =====
 *.db
 *.sqlite
+*.sqlite3
+backend/interview.db
 
-# Static files (generated)
+# ===== Static files (generated) =====
 static/audio/*
 static/videos/*
+static/avatars/*
 !static/audio/.gitkeep
 !static/videos/.gitkeep
+!static/avatars/.gitkeep
 
-# Node
+# ===== Uploads =====
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ===== Node =====
 node_modules/
 dist/
 .DS_Store
 
-# IDE
+# ===== IDE =====
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Logs
+# ===== Logs =====
 *.log
 npm-debug.log*
-
-# Uvicorn
 *.pid
+
+# ===== 毕业论文相关（不上传） =====
+*论文*.txt
+*绪论*.txt
+*需求分析*.txt
+*内容概要*.txt
+*面试题库*.docx
+convert_to_docx.py
+create_docx.js
+create_docx_full.js
+create_report.ps1

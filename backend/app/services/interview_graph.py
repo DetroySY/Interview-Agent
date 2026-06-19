@@ -5,7 +5,6 @@ AI 面试官 Agent - LangGraph 实现
 import json
 from typing import TypedDict, Annotated, Literal, Optional
 from langgraph.graph import StateGraph, END
-from typing import TypedDict, Annotated
 import operator
 
 
@@ -213,6 +212,9 @@ async def generate_report(state: InterviewState, llm) -> InterviewState:
 
     report_text = await llm.chat(messages)
 
+    # 移除报告 prompt，避免污染对话历史
+    messages.pop()
+
     # 解析 JSON 报告
     state["report"] = _parse_report(report_text)
 
@@ -262,20 +264,6 @@ def _parse_report(report_text: str) -> dict:
 
     print(f"无法解析报告 JSON，使用默认报告。原始内容: {report_text[:200]}")
     return default_report
-
-
-def route_after_eval(state: InterviewState) -> Literal["follow_up", "ask_question", "generate_report"]:
-    """评估后的路由决策"""
-    # 如果需要追问且追问次数未达上限
-    if state["should_follow_up"] and state["follow_up_count"] < 2:
-        return "follow_up"
-
-    # 如果轮数达到上限，结束面试
-    if state["current_round"] >= state["max_rounds"]:
-        return "generate_report"
-
-    # 否则进入下一轮提问
-    return "ask_question"
 
 
 def should_end_early(state: InterviewState) -> bool:

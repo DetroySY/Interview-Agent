@@ -30,10 +30,12 @@ def get_or_create_agent(session: InterviewSession) -> InterviewAgent:
         return active_agents[session_id]
 
     agent = InterviewAgent(session_id=session_id)
-    # 从数据库恢复对话历史
+    # 从数据库恢复对话历史（同时恢复 position 和 resume_text）
     agent.load_history(
         history=session.conversation_history or [],
-        current_round=session.current_round or 0
+        current_round=session.current_round or 0,
+        position=session.position or "",
+        resume_text=session.resume_text or "",
     )
     active_agents[session_id] = agent
     return agent
@@ -218,7 +220,7 @@ async def get_session_status(session_id: int, db: Session = Depends(get_db)):
     # 计算时长
     duration = None
     if session.start_time:
-        duration = (datetime.utcnow() - session.start_time).seconds
+        duration = (datetime.utcnow() - session.start_time).total_seconds()
 
     return {
         "status": session.status,
@@ -269,3 +271,35 @@ async def upload_avatar(file: UploadFile = File(...)):
     avatar_id = await dh_service.upload_avatar(content, file.filename)
 
     return {"avatar_id": avatar_id, "avatar_url": f"/static/avatars/{avatar_id}.png"}
+
+
+# --- 语音识别 STT（Whisper 模型缓存）---
+_whisper_model = None
+
+def _get_whisper_model():
+    """全局缓存 Whisper 模型，避免每次请求重新加载"""
+    global _whisper_model
+    if _whisper_model is None:
+        import whisper
+        _whisper_model = whisper.load_model("base")
+    return _whisper_model
+
+
+@router.post("/audio/transcribe")
+async def transcribe_audio(file: UploadFile = File(...)):
+    """上传音频文件，使用 Whisper 转写为文本"""
+    import tempfile
+    import os as _os
+
+    suffix = _os.path.splitext(file.filename)[1] if file.filename else ".webm"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    try:
+        model = _get_whisper_model()
+        result = model.transcribe(tmp_path, language="zh")
+        return {"text": result["text"].strip()}
+    finally:
+        if _os.path.exists(tmp_path):
+            _os.remove(tmp_path)

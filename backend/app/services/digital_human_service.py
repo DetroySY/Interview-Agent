@@ -3,7 +3,10 @@ import hashlib
 import asyncio
 import subprocess
 import shutil
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class DigitalHumanService:
@@ -119,7 +122,7 @@ class DigitalHumanService:
             else:
                 return await self._edge_tts_subprocess(text, audio_file)
         except Exception as e:
-            print(f"TTS 生成失败: {e}")
+            logger.error(f"TTS 生成失败: {e}")
             return ""
 
     async def _edge_tts(self, text: str, output_file: str) -> str:
@@ -156,7 +159,7 @@ class DigitalHumanService:
             if result.returncode == 0 and os.path.exists(output_file):
                 return output_file
         except Exception as e:
-            print(f"edge-tts subprocess failed: {e}")
+            logger.error(f"edge-tts subprocess failed: {e}")
         return ""
 
     async def _generate_video_with_ffmpeg(
@@ -169,7 +172,7 @@ class DigitalHumanService:
         如果有 Wav2Lip，会尝试使用 Wav2Lip
         """
         if not self.ffmpeg_available:
-            print("ffmpeg 不可用，无法生成视频")
+            logger.warning("ffmpeg 不可用，无法生成视频")
             return ""
 
         safe_hash = hashlib.md5(audio_path.encode()).hexdigest()[:8]
@@ -214,11 +217,11 @@ class DigitalHumanService:
             if result.returncode == 0 and os.path.exists(video_file):
                 return video_file
             else:
-                print(f"ffmpeg 错误: {result.stderr}")
+                logger.error(f"ffmpeg 错误: {result.stderr}")
                 return ""
 
         except Exception as e:
-            print(f"视频生成失败: {e}")
+            logger.error(f"视频生成失败: {e}")
             return ""
 
     async def _run_wav2lip(

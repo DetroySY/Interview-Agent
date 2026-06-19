@@ -57,6 +57,13 @@ export const interviewApi = {
   generateVideo(text, avatar = 'default') {
     return api.post('/interview/video/generate', null, { params: { text, avatar } })
   },
+
+  // 转写音频为文本
+  transcribeAudio(formData) {
+    return api.post('/interview/audio/transcribe', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
 }
 
 export default api

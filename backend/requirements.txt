@@ -11,3 +11,4 @@ edge-tts>=6.0.0
 Pillow>=10.0.0
 langgraph>=0.0.15
 typing-extensions>=4.0.0
+openai-whisper>=20231117

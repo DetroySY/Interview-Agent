@@ -17,12 +17,12 @@ class InterviewAgent:
         self.graph = InterviewGraph(self.llm)
         self.state: Optional[InterviewState] = None
 
-    def load_history(self, history: list[dict], current_round: int):
+    def load_history(self, history: list[dict], current_round: int, position: str = "", resume_text: str = ""):
         """从数据库加载对话历史"""
         if self.state is None:
             self.state = {
-                "position": "",
-                "resume_text": "",
+                "position": position,
+                "resume_text": resume_text,
                 "conversation": [],
                 "current_round": 0,
                 "max_rounds": self.MAX_ROUNDS,
@@ -33,6 +33,10 @@ class InterviewAgent:
                 "report": None,
                 "last_question": "",
             }
+        else:
+            # 已存在状态时也更新 position 和 resume_text
+            self.state["position"] = position or self.state.get("position", "")
+            self.state["resume_text"] = resume_text or self.state.get("resume_text", "")
         self.state["conversation"] = history or []
         self.state["current_round"] = current_round or 0
 
